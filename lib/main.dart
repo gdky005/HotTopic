@@ -1,5 +1,10 @@
-import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'DBCategory.dart';
+import 'NetManager.dart';
+import 'bean/db_category_entity.dart';
+import 'constants.dart';
 
 void main() => runApp(MyApp());
 
@@ -29,24 +34,31 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   String text = "---";
+  List<String> tags = List();
 
   void _incrementCounter() {
     setState(() {
       _counter++;
     });
+    getDBCategoryInfo();
   }
 
   @override
   void initState() {
     super.initState();
-    getHttp();
+    getDBCategoryInfo();
   }
 
-  void getHttp() async {
+  void getDBCategoryInfo() async {
     try {
-      Response response = await Dio().get("http://www.baidu.com");
-      text = response.data.toString();
-      print(response);
+      var url = Constants.getCategoryTag(DBCategory.tv);
+
+      NetManager.getInstance()
+          .request<DbCategoryEntity>(url)
+          .then((DbCategoryEntity entity) {
+        tags = entity.tags;
+        print(tags);
+      });
     } catch (e) {
       print(e);
     }
@@ -59,23 +71,27 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Column(
-            children: <Widget>[
-              Center(
-                  child: Text(
-                'You have pushed the button this many times:',
-              )),
-              Center(
-                  child: Text(
-                '$_counter',
-                style: Theme.of(context).textTheme.display1,
-              )),
-              Text(text)
-            ],
-          ),
+        child: Column(
+          children: <Widget>[
+            Center(
+                child: Text(
+              'You have pushed the button this many times:',
+            )),
+            Center(
+                child: Text(
+              '$_counter',
+              style: Theme.of(context).textTheme.display1,
+            )),
+            ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: tags.length,
+                itemBuilder: (context, postion) {
+                  return ListTile(
+                    title: Text(tags[postion]),
+                  );
+                })
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
